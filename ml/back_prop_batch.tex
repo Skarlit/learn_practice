@@ -1,0 +1,69 @@
+\documentclass[14pt,letter,oneside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{physics}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}\usepackage{graphicx}
+
+\begin{document}
+	\title{Batch version Back Propagation Derivation}
+	\begin{list}{-}{Variables}
+		\item{$X_{ij}, \hspace{8pt} 0\leq i < N, \hspace{8pt} 0\leq j < K^{(0)}$} \\ 
+		Inputs:  $N$ row of input samples with $K + 1$ features. The first feature is always 1 for bias.
+		
+		\item{ $W^{(l)}_{ij}, \hspace{8pt} 0\leq l < L, \hspace{8pt} 0 \leq i < K^{(l)}, \hspace{8pt} 0 \leq j < K^{(l+1)} $} \\
+		Network Weights: Where $l$ is the layer in the network. $j$ is the number of neurons in that layer, $i$ is number of inputs from previous layer. Note $K_0 = K+1$ from the input.
+		
+		\item{ $A^l= Z^l W^l, \hspace{8pt} 0 \leq l < L$ } \\
+		Activation of the $l$-th layer. Note that $Z^0 = X$
+		
+		\item { $Z^l = f^{l-1}(A^{l-1}), \hspace{8pt} 1 \leq l < L$} \\
+		Output for layer $l$. 
+	
+		\item { $f^l(A^l) = f^l( Z^l W^l ) $} \\
+		Filter function for layer $l$
+		
+		\item { $\tilde{Y}_{ij},  \hspace{8pt} 0\leq i < N, \hspace{8pt} 0\leq j < K^{(L)} $} \\
+		Note $Y = Z^L$
+		
+		\item { $T_{ij}, \hspace{8pt} 0\leq i < N, \hspace{8pt} 0\leq j < K^{(L)} $ } \\
+		Target value used to compared with Y
+		
+		\item { $E(\tilde{Y}, T) = E(Z^{(L)})$ } 
+		\\ Error function 
+ 
+	\end{list}
+	 Note that $Z$ goes from $Z^{(0)}\ldots Z^{(L)}$, $f$ goes from $f^{(0)} \ldots f^{(L-1)}$, $A$ goes from $A^{(0)} \ldots A^{(L-1)}$ and $W$ goes from $W^{(0)} \ldots W^{(L-1)}$ \\\
+	 
+	 For each layer $l$ by chain rule:
+	 $$
+	   \pdv{E}{W^{l-1}_{ij}} = \sum_{s,t} \pdv{E}{Z^l_{st}} \pdv{Z^l_{st}}{W^{l-1}_{ij}}
+	 $$
+	 
+	 Since \begin{align*}
+			 Z^l_{st} &= f^{l-1}(A^{l-1}_{st}) = f^{l-1} \left( \sum_k Z^{l-1}_{sk}W^{l-1}_{kt}\right) \\
+			 \pdv{Z^l_{st}}{W^{l-1}_{ij}} &= \pdv{f^{l-1}}{W} \left(\sum_k Z^{l-1}_{sk}W^{l-1}_{kt} \right) \pdv{\sum_k Z^{l-1}_{sk}W^{l-1}_{kt}}{W^{l-1}_{ij}} \\
+			 &= \pdv{f^{l-1}}{W} \left(\sum_k Z^{l-1}_{sk}W^{l-1}_{kt} \right) Z^{l-1}_{sk} \delta^t_j \delta^k_i\\\
+			 &= \pdv{f^{l-1}(A^{l-1}_{st})}{W}  Z^{l-1}_{sk} \delta^t_j \delta^k_i\\
+	 \end{align*} 
+	 
+	 Substitute the 2nd term, we have 
+	 \begin{align*}
+		 \pdv{E}{W^{l-1}_{ij}} &= \sum_{s,t} \pdv{E}{Z^l_{st}} \pdv{f^{l-1}(A^{l-1}_{st})}{W}  Z^{l-1}_{sk} \delta^t_j \delta^k_i \\
+		 &= \sum_{s} \pdv{E}{Z^l_{sj}} \left[ \partial_W{f^{l-1}(A^{l-1})} \right]_{sj} Z^{l-1}_{si} \\
+	 \end{align*}
+	 
+	 
+	 For the other compnent
+	 \begin{align*}
+		  \pdv{E}{Z^l_{sj}} &= \sum_{u,v} \pdv{E}{Z^{l+1}_{uv}} \pdv{Z^{l+1}_{uv}}{Z^l_{sj}} \\
+				 &= \sum_{u,v} \pdv{E}{Z^{l+1}_{uv}} \pdv{f^l \left(\sum_{p} Z^l_{up}W^l_{pv} \right)}{Z^l_{sj}} \\
+				 &= \sum_{v} \pdv{E}{Z^{l+1}_{sv}} \left[ \partial_Z{f^l(A^{l})} \right]_{sv} W^l_{jv} \\
+	 \end{align*}
+	 
+
+	
+\end{document}
