@@ -1,4 +1,6 @@
 \documentclass[14pt,letter,oneside]{article}
+\usepackage{geometry}
+\geometry{left=20mm,top=20mm}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -9,8 +11,11 @@
 \usepackage{amssymb}\usepackage{graphicx}
 
 \begin{document}
-	\title{Batch version Back Propagation Derivation}
-	\begin{list}{-}{Variables}
+\title{Derivation of Batch Back Propagation }
+\maketitle
+	
+	\section*{Variables:}
+	\begin{list}{-}{}
 		\item{$X_{ij}, \hspace{8pt} 0\leq i < N, \hspace{8pt} 0\leq j < K^{(0)}$} \\ 
 		Inputs:  $N$ row of input samples with $K + 1$ features. The first feature is always 1 for bias.
 		
@@ -38,32 +43,53 @@
 	\end{list}
 	 Note that $Z$ goes from $Z^{(0)}\ldots Z^{(L)}$, $f$ goes from $f^{(0)} \ldots f^{(L-1)}$, $A$ goes from $A^{(0)} \ldots A^{(L-1)}$ and $W$ goes from $W^{(0)} \ldots W^{(L-1)}$ \\\
 	 
+	 \section*{Derivation:}
 	 For each layer $l$ by chain rule:
-	 $$
-	   \pdv{E}{W^{l-1}_{ij}} = \sum_{s,t} \pdv{E}{Z^l_{st}} \pdv{Z^l_{st}}{W^{l-1}_{ij}}
-	 $$
+	 \begin{align}
+	   \pdv{E}{W^{l}_{ij}} = \sum_{s,t} \pdv{E}{A^l_{st}} \pdv{A^l_{st}}{W^{l}_{ij}}
+	 \end{align}
 	 
-	 Since \begin{align*}
-			 Z^l_{st} &= f^{l-1}(A^{l-1}_{st}) = f^{l-1} \left( \sum_k Z^{l-1}_{sk}W^{l-1}_{kt}\right) \\
-			 \pdv{Z^l_{st}}{W^{l-1}_{ij}} &= \pdv{f^{l-1}}{W} \left(\sum_k Z^{l-1}_{sk}W^{l-1}_{kt} \right) \pdv{\sum_k Z^{l-1}_{sk}W^{l-1}_{kt}}{W^{l-1}_{ij}} \\
-			 &= \pdv{f^{l-1}}{W} \left(\sum_k Z^{l-1}_{sk}W^{l-1}_{kt} \right) Z^{l-1}_{sk} \delta^t_j \delta^k_i\\\
-			 &= \pdv{f^{l-1}(A^{l-1}_{st})}{W}  Z^{l-1}_{sk} \delta^t_j \delta^k_i\\
-	 \end{align*} 
+	 Since \begin{align}
+		A^l_{st} &= \sum_k Z^l_{sk}W^l_{kt} \\
+		\pdv{A^l_{st}}{W^l_{ij}} &= Z^l_{sk} \delta^k_i \delta^t_j \\
+		 &= Z^l_{si} \delta^t_j
+	 \end{align} 
 	 
-	 Substitute the 2nd term, we have 
-	 \begin{align*}
-		 \pdv{E}{W^{l-1}_{ij}} &= \sum_{s,t} \pdv{E}{Z^l_{st}} \pdv{f^{l-1}(A^{l-1}_{st})}{W}  Z^{l-1}_{sk} \delta^t_j \delta^k_i \\
-		 &= \sum_{s} \pdv{E}{Z^l_{sj}} \left[ \partial_W{f^{l-1}(A^{l-1})} \right]_{sj} Z^{l-1}_{si} \\
-	 \end{align*}
+	 Substitute (4) into (1), we have 
+	 \begin{align}
+		 \pdv{E}{W^{l}_{ij}} &= \sum_{s,t} \pdv{E}{A^l_{st}}  Z^l_{si} \delta^t_j \\
+		 &= \sum_{s} \pdv{E}{A^l_{sj}}  Z^l_{si}
+	 \end{align}
 	 
 	 
-	 For the other compnent
-	 \begin{align*}
-		  \pdv{E}{Z^l_{sj}} &= \sum_{u,v} \pdv{E}{Z^{l+1}_{uv}} \pdv{Z^{l+1}_{uv}}{Z^l_{sj}} \\
-				 &= \sum_{u,v} \pdv{E}{Z^{l+1}_{uv}} \pdv{f^l \left(\sum_{p} Z^l_{up}W^l_{pv} \right)}{Z^l_{sj}} \\
-				 &= \sum_{v} \pdv{E}{Z^{l+1}_{sv}} \left[ \partial_Z{f^l(A^{l})} \right]_{sv} W^l_{jv} \\
-	 \end{align*}
+	 Also,
+	 \begin{align}
+		  \pdv{E}{A^l_{sj}} &= \sum_{u,v} \pdv{E}{A^{l+1}_{uv}} \pdv{A^{l+1}_{uv}}{A^l_{sj}} \\
+		  &= \sum_{u,v} \pdv{E}{A^{l+1}_{uv}} \pdv{}{A^l_{sj}} \left(\sum_p \left[f^l(A^l)\right]_{up}W^{l+1}_{pv} \right)  \\
+		  &= \sum_{u,v} \pdv{E}{A^{l+1}_{uv}} \left(\sum_p \left[\partial_Af^l(A^l)\right]_{up} \delta^u_s \delta^p_j W^{l+1}_{pv} \right)  \\
+		 &= \sum_{u,v} \pdv{E}{A^{l+1}_{uv}} \left(\left[\partial_Af^l(A^l)\right]_{uj} \delta^u_s W^{l+1}_{jv} \right)  \\
+		 &= \sum_{v} \pdv{E}{A^{l+1}_{sv}} \left(\left[\partial_Af^l(A^l)\right]_{sj} W^{l+1}_{jv} \right) 
+	 \end{align}
 	 
+	 In matrix form: \\
 
+	 
+	 For base case, we have:
+	   \begin{align}
+	   		X &= Z^0 \\
+	   		Y &= Z^L = f^{L-1}(A^{L-1})  \\
+	   		E(Y) &= E(Z^L) = E(f^{L-1}(A^{L-1})) \\
+	   		\pdv{E}{A^{L-1}} &= \pdv{E(Y)}{Y}\partial_A f^{L-1}(A^{L-1}) 
+	   \end{align}
+	   
+	 For recursive case ($0 \leq l \leq L-2$):
+	   \begin{align}
+	    	\pdv{E}{W^l} &= (Z^l)^T \pdv{E}{A^l} \\
+	    	\pdv{E}{A^l} &= \pdv{E}{A^{l+1}} \left( \partial_Af^l(A^l) W^{l+1} \right)^T \\
+	    	&= \pdv{E}{A^{l+1}} \left( \partial_Af^l(Z^lW^l) W^{l+1} \right)^T
+	   \end{align}
+	
+	 To update $W$:
+	   $$ W^l \leftarrow W^l - \eta_l \pdv{E}{W^l} $$
 	
 \end{document}
